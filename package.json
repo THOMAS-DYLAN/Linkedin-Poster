@@ -8,6 +8,7 @@
     "dry-run": "node src/generate-week.js --dry-run",
     "check-approval": "node src/check-approval.js",
     "post": "node src/post-today.js",
+    "dashboard": "node src/server.js",
     "auth-linkedin": "node src/linkedin.js --auth",
     "test:email": "node src/email.js --test",
     "test:linkedin": "node src/linkedin.js --test"
@@ -17,6 +18,7 @@
     "@octokit/rest": "^20.0.0",
     "axios": "^1.6.0",
     "dotenv": "^16.3.0",
+    "express": "^5.2.1",
     "imap": "^0.8.19",
     "mailparser": "^3.6.0",
     "nodemailer": "^9.0.1"
