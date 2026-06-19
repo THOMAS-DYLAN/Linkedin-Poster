@@ -258,7 +258,9 @@
     <input type="password" id="inp-token" placeholder="ghp_…" autocomplete="off" />
     <p class="hint">
       Required for all actions that write or trigger workflows.<br>
-      Token needs <strong>Contents: write</strong> + <strong>Actions: write</strong> permissions.<br>
+      Use a <strong>Classic Personal Access Token</strong> (not fine-grained) with scopes:<br>
+      <strong>repo</strong> (for file writes) + <strong>workflow</strong> (to trigger Actions).<br>
+      Generate one at github.com → Settings → Developer settings → Personal access tokens.<br>
       Saved only in this browser (localStorage).
     </p>
     <div class="modal-foot">
@@ -338,7 +340,7 @@ async function ghFetch(path, opts = {}) {
   const res = await fetch(API + path, {
     ...opts,
     headers: {
-      Authorization:  `token ${getToken()}`,
+      Authorization:  `Bearer ${getToken()}`,
       Accept:         'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
       ...(opts.headers || {}),
@@ -346,6 +348,10 @@ async function ghFetch(path, opts = {}) {
     body: opts.body != null ? JSON.stringify(opts.body) : undefined,
   });
   if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      openSettings();
+      throw new Error(`Token invalid or missing permissions (${res.status}). Please update your GitHub token.`);
+    }
     const j = await res.json().catch(() => ({}));
     throw new Error(j.message || `GitHub API error ${res.status}`);
   }
