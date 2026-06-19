@@ -15,7 +15,7 @@ function buildSubject(weekOf) {
   return `[LinkedIn Bot] Week of ${weekOf} — Awaiting Approval`;
 }
 
-function buildHtmlBody(weekData, dashboardUrl) {
+function buildHtmlBody(weekData) {
   const { topic, pageUrl, posts, weekOf } = weekData;
   const postBlocks = [
     { day: 'Monday', label: 'POST 1 — Introduction', text: posts[0].text },
@@ -40,15 +40,8 @@ ${p.text}
       </div>
       <div style="border:1px solid #e5e5e5;border-top:none;border-radius:0 0 10px 10px;padding:28px;">
         <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#444;">
-          This week's tool is live. Review the three posts below and reply <strong>"approved"</strong> to schedule them, or open the dashboard to approve with one click.
+          This week's tool is live. Review the three posts below and reply <strong>"approved"</strong> to schedule them. Reply "approved with changes:" followed by your edits if you want to adjust anything.
         </p>
-
-        ${dashboardUrl ? `
-        <div style="background:#f0f7ff;border:1px solid #c2dafb;border-radius:8px;padding:14px 16px;margin-bottom:24px;text-align:center;">
-          <p style="margin:0 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#4a7fd4;">Approve online</p>
-          <a href="${dashboardUrl}" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;border-radius:7px;padding:11px 24px;font-size:14px;font-weight:600;">Open Dashboard →</a>
-          <p style="margin:8px 0 0;font-size:12px;color:#666;">See &amp; edit all posts, then confirm with one click.</p>
-        </div>` : ''}
 
         <div style="background:#f0f7ff;border:1px solid #c2dafb;border-radius:8px;padding:14px 16px;margin-bottom:28px;">
           <p style="margin:0 0 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#4a7fd4;">This week's page</p>
@@ -71,7 +64,7 @@ ${p.text}
   `;
 }
 
-async function sendDraftEmail(weekData, dashboardUrl) {
+async function sendDraftEmail(weekData) {
   const transport = getTransport();
   const subject = buildSubject(weekData.weekOf);
 
@@ -79,7 +72,7 @@ async function sendDraftEmail(weekData, dashboardUrl) {
     from: `"LinkedIn Bot" <${process.env.GMAIL_USER}>`,
     to: process.env.GMAIL_USER,
     subject,
-    html: buildHtmlBody(weekData, dashboardUrl)
+    html: buildHtmlBody(weekData)
   });
 
   console.log(`Approval email sent. Message-ID: ${info.messageId}`);

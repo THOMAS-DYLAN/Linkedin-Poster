@@ -3,7 +3,6 @@ const Imap = require('imap');
 const { simpleParser } = require('mailparser');
 const fs = require('fs');
 const path = require('path');
-const { fetchPendingFromRepo } = require('./github-deploy');
 
 const PENDING_FILE = path.join(__dirname, '../data/pending-week.json');
 
@@ -119,20 +118,6 @@ async function main() {
 
   console.log(`Checking approval for week of ${pending.weekOf}...`);
 
-  // Check dashboard (GitHub repo) approval first — it captures any edits made in the browser
-  try {
-    const repoData = await fetchPendingFromRepo();
-    if (repoData && repoData.weekOf === pending.weekOf && repoData.status === 'approved') {
-      console.log('Approval found via dashboard.');
-      savePending(repoData); // sync full repo version (includes any edits from the dashboard)
-      console.log(`Status updated to "approved". Posts will go out Mon/Wed/Fri at 9 AM.`);
-      return;
-    }
-  } catch (e) {
-    console.log(`(GitHub check skipped: ${e.message})`);
-  }
-
-  // Fall back to email approval
   const approvedText = await checkForApproval(pending);
 
   if (!approvedText) {
@@ -140,7 +125,7 @@ async function main() {
     return;
   }
 
-  console.log('Approval found via email.');
+  console.log('Approval found.');
   pending.posts = parseChanges(approvedText, pending.posts);
   pending.status = 'approved';
   pending.approvedAt = new Date().toISOString();

@@ -2,7 +2,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const { generateTopic, generatePageHTML, generatePosts } = require('./claude-prompts');
-const { deployPage, commitPendingToRepo, deployDashboard } = require('./github-deploy');
+const { deployPage } = require('./github-deploy');
 const { sendDraftEmail } = require('./email');
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -98,24 +98,12 @@ async function main() {
   usedTopics.push({ title: topic.title, slug: topic.slug, weekOf });
   fs.writeFileSync(TOPICS_FILE, JSON.stringify(usedTopics, null, 2));
 
-  // 6a. Commit pending data to repo so the dashboard can read/update it
-  process.stdout.write('Committing pending data to repo...');
-  await commitPendingToRepo(weekData);
-  console.log(' done.');
-
-  // 6b. Deploy dashboard to GitHub Pages
-  process.stdout.write('Deploying approval dashboard...');
-  const dashboardUrl = await deployDashboard(weekData);
-  console.log(` done.\nDashboard: ${dashboardUrl}`);
-  // Brief pause for Pages to propagate
-  await new Promise(r => setTimeout(r, 2000));
-
-  // 7. Send approval email (with dashboard link)
+  // 7. Send approval email
   process.stdout.write('Sending approval email...');
-  await sendDraftEmail(weekData, dashboardUrl);
+  await sendDraftEmail(weekData);
   console.log(' done.\n');
 
-  console.log(`All done. Open the dashboard or reply "approved" to schedule the posts.\n${dashboardUrl}`);
+  console.log(`All done. Check ${process.env.GMAIL_USER} and reply "approved" to schedule the posts.`);
 }
 
 main().catch(err => {

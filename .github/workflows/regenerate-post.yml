@@ -1,0 +1,45 @@
+name: Regenerate Post
+
+on:
+  workflow_dispatch:
+    inputs:
+      day:
+        description: 'Which post to regenerate'
+        required: true
+        type: choice
+        options:
+          - monday
+          - wednesday
+          - friday
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Regenerate post
+        run: node src/regenerate-post.js
+        env:
+          POST_DAY: ${{ inputs.day }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Commit regenerated post
+        run: |
+          git config user.name "linkedin-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/pending-week.json
+          git diff --staged --quiet || (git pull --rebase && git commit -m "chore: regenerated ${{ inputs.day }} post $(date +%Y-%m-%d)" && git push)

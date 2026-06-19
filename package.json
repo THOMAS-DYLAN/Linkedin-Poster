@@ -11,7 +11,8 @@
     "dashboard": "node src/server.js",
     "auth-linkedin": "node src/linkedin.js --auth",
     "test:email": "node src/email.js --test",
-    "test:linkedin": "node src/linkedin.js --test"
+    "test:linkedin": "node src/linkedin.js --test",
+    "regenerate-post": "node src/regenerate-post.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0",

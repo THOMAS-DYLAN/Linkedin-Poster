@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn Bot</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0d0d0d;
+      --surface: #161616;
+      --card:    #1c1c1c;
+      --border:  #2a2a2a;
+      --text:    #f0f0f0;
+      --muted:   #666;
+      --blue:    #3b82f6;
+      --green:   #22c55e;
+      --amber:   #f59e0b;
+      --red:     #ef4444;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── busy overlay ─────────────────────────────────── */
+    [data-busy] .btn:not([disabled]),
+    [data-busy] .icon-btn { pointer-events: none; opacity: 0.5; }
+
+    /* ── header ───────────────────────────────────────── */
+    .hdr {
+      position: sticky; top: 0; z-index: 20;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 13px 22px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .hdr-title { font-size: 15px; font-weight: 700; }
+    .hdr-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .hdr-right { display: flex; align-items: center; gap: 10px; }
+
+    /* ── badges ───────────────────────────────────────── */
+    .badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; padding: 3px 9px; border-radius: 100px;
+    }
+    .b-pending  { background: rgba(245,158,11,.12); color: var(--amber); }
+    .b-approved { background: rgba(34,197,94,.12);  color: var(--green); }
+    .b-sent     { background: rgba(102,102,102,.15); color: var(--muted); }
+
+    /* ── buttons ──────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      border: none; border-radius: 7px; padding: 8px 14px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: filter .15s, transform .1s; white-space: nowrap; font-family: inherit;
+    }
+    .btn:hover:not([disabled]) { filter: brightness(1.12); }
+    .btn:active:not([disabled]) { transform: scale(.97); }
+    .btn[disabled] { opacity: .4; cursor: default; }
+    .btn-primary { background: var(--blue);  color: #fff; }
+    .btn-success { background: rgba(34,197,94,.14); color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+    .btn-ghost   { background: rgba(255,255,255,.05); color: var(--text); border: 1px solid var(--border); }
+
+    .icon-btn {
+      background: none; border: 1px solid var(--border); color: var(--muted);
+      padding: 7px 10px; font-size: 15px; border-radius: 7px; cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .icon-btn:hover { border-color: #555; color: var(--text); }
+
+    /* ── layout ───────────────────────────────────────── */
+    .main { max-width: 1120px; margin: 0 auto; padding: 24px 20px 60px; }
+
+    .state-box { text-align: center; padding: 80px 20px; color: var(--muted); }
+    .state-box h2 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
+    .state-box p  { font-size: 14px; line-height: 1.6; }
+
+    /* ── topic card ───────────────────────────────────── */
+    .topic-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 15px 20px; margin-bottom: 18px;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    }
+    .tc-label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 3px; }
+    .tc-title { font-size: 15px; font-weight: 700; }
+    .tc-desc  { font-size: 13px; color: var(--muted); margin-top: 3px; }
+    .topic-card a { font-size: 13px; color: var(--blue); text-decoration: none; flex-shrink: 0; }
+    .topic-card a:hover { text-decoration: underline; }
+
+    /* ── posts grid ───────────────────────────────────── */
+    .posts-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 18px; }
+    @media(max-width:700px) { .posts-grid { grid-template-columns: 1fr; } }
+
+    /* ── post card ────────────────────────────────────── */
+    .post-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      display: flex; flex-direction: column; transition: border-color .2s;
+    }
+    .post-card.pc-approved { border-color: rgba(34,197,94,.25); }
+    .post-card.pc-sent     { border-color: rgba(102,102,102,.25); }
+
+    .pc-hdr {
+      padding: 12px 14px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+    }
+    .pc-day   { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+    .pc-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .pc-body {
+      flex: 1; padding: 14px; font-size: 13px; line-height: 1.75; color: #ccc;
+      white-space: pre-wrap; word-break: break-word;
+    }
+
+    .pc-actions {
+      padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px;
+    }
+
+    /* ── footer bar ───────────────────────────────────── */
+    .footer-bar {
+      border-top: 1px solid var(--border); padding-top: 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .footer-hint { font-size: 12px; color: var(--muted); }
+    .footer-actions { display: flex; gap: 8px; }
+    .footer-actions .btn { font-size: 13px; padding: 9px 18px; }
+
+    /* ── toast ────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 20px; right: 20px;
+      min-width: 200px; max-width: 340px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 9px;
+      padding: 11px 16px; font-size: 13px; line-height: 1.5;
+      box-shadow: 0 8px 24px rgba(0,0,0,.5); z-index: 300;
+      transform: translateY(14px); opacity: 0; pointer-events: none;
+      transition: transform .25s, opacity .25s;
+    }
+    #toast.show      { transform: translateY(0); opacity: 1; }
+    #toast.t-ok      { border-color: rgba(34,197,94,.4);  color: var(--green); }
+    #toast.t-err     { border-color: rgba(239,68,68,.4);  color: var(--red); }
+
+    /* ── modal ────────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; width: 90%; max-width: 400px;
+    }
+    .modal h3 { font-size: 15px; margin-bottom: 18px; }
+    .modal label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; }
+    .modal input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--text); padding: 9px 12px;
+      font-size: 13px; font-family: 'Courier New', monospace; outline: none; margin-bottom: 10px;
+    }
+    .modal input:focus { border-color: var(--blue); }
+    .modal .hint { font-size: 12px; color: var(--muted); line-height: 1.65; margin-bottom: 18px; }
+    .modal-foot { display: flex; gap: 8px; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+
+<header class="hdr">
+  <div>
+    <div class="hdr-title">LinkedIn Bot</div>
+    <div class="hdr-sub" id="week-sub">Loading…</div>
+  </div>
+  <div class="hdr-right">
+    <span id="week-badge" style="display:none"></span>
+    <button class="icon-btn" onclick="openSettings()" title="Settings">⚙</button>
+  </div>
+</header>
+
+<div class="main">
+  <div id="el-loading" class="state-box"><p>Loading this week's posts…</p></div>
+
+  <div id="el-empty" class="state-box" style="display:none">
+    <h2>No content pending</h2>
+    <p>Trigger the <strong>Generate Week</strong> workflow to create this week's posts.</p>
+  </div>
+
+  <div id="el-dash" style="display:none">
+    <div class="topic-card" id="topic-card"></div>
+    <div class="posts-grid" id="posts-grid"></div>
+    <div class="footer-bar">
+      <div class="footer-hint" id="footer-hint"></div>
+      <div class="footer-actions">
+        <button class="btn btn-ghost" onclick="regenerateAll()">Regenerate All</button>
+        <button class="btn btn-primary" id="btn-post-all" onclick="postAll()">Post All</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div class="overlay" id="modal-settings">
+  <div class="modal">
+    <h3>Settings</h3>
+    <label for="inp-token">GitHub Personal Access Token</label>
+    <input type="password" id="inp-token" placeholder="ghp_…" autocomplete="off" />
+    <p class="hint">
+      Required for Schedule, Post All, and Regenerate actions.<br>
+      Token needs <strong>Contents: write</strong> + <strong>Actions: write</strong> permissions.<br>
+      Stored only in this browser (localStorage).
+    </p>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save Token</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── config ────────────────────────────────────────────────────────────────────
+const { OWNER, REPO } = (() => {
+  const h = window.location.hostname;
+  const p = window.location.pathname.split('/').filter(Boolean);
+  if (h.endsWith('.github.io')) return { OWNER: h.replace('.github.io', ''), REPO: p[0] || '' };
+  return { OWNER: 'THOMAS-DYLAN', REPO: 'Linkedin-Poster' };
+})();
+
+const RAW = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/data/pending-week.json`;
+const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
+
+const LABELS = {
+  monday:    'Post 1 — Introduction',
+  wednesday: 'Post 2 — Why businesses care',
+  friday:    'Post 3 — Web dev tie-in',
+};
+
+// ── state ─────────────────────────────────────────────────────────────────────
+let S = null;      // pending-week.json object
+let sha = null;    // file sha for GitHub API commits
+
+// ── token ─────────────────────────────────────────────────────────────────────
+const getToken = () => localStorage.getItem('lnbot_token') || '';
+const hasToken = () => !!getToken();
+
+// ── toast ─────────────────────────────────────────────────────────────────────
+let _tt;
+function toast(msg, cls = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'show' + (cls ? ' ' + cls : '');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => { el.className = ''; }, 5000);
+}
+
+// ── settings modal ────────────────────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('inp-token').value = getToken();
+  document.getElementById('modal-settings').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('modal-settings').classList.remove('open');
+}
+function saveSettings() {
+  const v = document.getElementById('inp-token').value.trim();
+  if (v) localStorage.setItem('lnbot_token', v);
+  else   localStorage.removeItem('lnbot_token');
+  closeSettings();
+  toast('Token saved.', 't-ok');
+}
+document.getElementById('modal-settings').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeSettings();
+});
+document.getElementById('inp-token').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveSettings();
+});
+
+// ── busy ──────────────────────────────────────────────────────────────────────
+function busy(on) {
+  if (on) document.body.setAttribute('data-busy', '1');
+  else    document.body.removeAttribute('data-busy');
+}
+
+// ── GitHub API ────────────────────────────────────────────────────────────────
+async function ghFetch(path, opts = {}) {
+  const res = await fetch(API + path, {
+    ...opts,
+    headers: {
+      Authorization:  `token ${getToken()}`,
+      Accept:         'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+      ...(opts.headers || {}),
+    },
+    body: opts.body != null ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    throw new Error(j.message || `GitHub API error ${res.status}`);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+function b64enc(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  bytes.forEach(b => (bin += String.fromCharCode(b)));
+  return btoa(bin);
+}
+
+async function ensureSha() {
+  if (sha) return;
+  const f = await ghFetch('/contents/data/pending-week.json');
+  sha = f.sha;
+}
+
+async function commitS(msg) {
+  await ensureSha();
+  const r = await ghFetch('/contents/data/pending-week.json', {
+    method: 'PUT',
+    body: { message: msg, content: b64enc(JSON.stringify(S, null, 2)), sha, branch: 'main' },
+  });
+  sha = r.content.sha;
+}
+
+async function dispatch(file, inputs = {}) {
+  await ghFetch(`/actions/workflows/${encodeURIComponent(file)}/dispatches`, {
+    method: 'POST',
+    body: { ref: 'main', inputs },
+  });
+}
+
+// ── data loading ──────────────────────────────────────────────────────────────
+async function load() {
+  try {
+    const res = await fetch(RAW + '?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data || !data.weekOf) { showEmpty(); return; }
+    S = data;
+    render();
+  } catch (e) {
+    document.getElementById('el-loading').innerHTML =
+      `<p style="color:var(--red)">Failed to load: ${esc(e.message)}</p>`;
+  }
+}
+
+// ── render ────────────────────────────────────────────────────────────────────
+function showEmpty() {
+  document.getElementById('el-loading').style.display = 'none';
+  document.getElementById('el-empty').style.display   = '';
+}
+
+function render() {
+  document.getElementById('el-loading').style.display = 'none';
+  document.getElementById('el-dash').style.display    = '';
+
+  const { weekOf, weekNumber, topic, pageUrl, posts, status } = S;
+
+  // header
+  document.getElementById('week-sub').textContent = `Week ${weekNumber || '—'} · ${weekOf}`;
+  const wb = document.getElementById('week-badge');
+  wb.style.display = '';
+  if (status === 'approved') {
+    wb.textContent = 'Approved'; wb.className = 'badge b-approved';
+  } else {
+    wb.textContent = 'Pending approval'; wb.className = 'badge b-pending';
+  }
+
+  // topic card
+  document.getElementById('topic-card').innerHTML = `
+    <div>
+      <div class="tc-label">This week's page</div>
+      <div class="tc-title">${esc(topic.title)}</div>
+      <div class="tc-desc">${esc(topic.description)}</div>
+    </div>
+    <a href="${esc(pageUrl)}" target="_blank" rel="noopener noreferrer">View page →</a>
+  `;
+
+  // post cards
+  const grid = document.getElementById('posts-grid');
+  grid.innerHTML = '';
+  ['monday', 'wednesday', 'friday'].forEach(day => {
+    const post = posts.find(p => p.day === day);
+    if (post) grid.appendChild(makeCard(post, status));
+  });
+
+  // footer
+  const allSent = posts.every(p => p.sent);
+  const btn     = document.getElementById('btn-post-all');
+  const hint    = document.getElementById('footer-hint');
+
+  if (allSent) {
+    btn.textContent = 'All Posted ✓'; btn.disabled = true; btn.className = 'btn btn-success';
+    hint.textContent = 'All posts have been sent.';
+  } else if (status === 'approved') {
+    btn.textContent = 'Approved ✓'; btn.disabled = false; btn.className = 'btn btn-success';
+    hint.textContent = 'Scheduled for Mon / Wed / Fri at 9 AM.';
+  } else {
+    btn.textContent = 'Post All'; btn.disabled = false; btn.className = 'btn btn-primary';
+    hint.textContent = 'Approve all three posts to schedule them.';
+  }
+}
+
+function makeCard(post, weekStatus) {
+  const { day, text, sent } = post;
+  const approved = weekStatus === 'approved';
+
+  let cardCls = 'post-card';
+  if (sent)         cardCls += ' pc-sent';
+  else if (approved) cardCls += ' pc-approved';
+
+  let badge;
+  if (sent)          badge = `<span class="badge b-sent">Sent</span>`;
+  else if (approved)  badge = `<span class="badge b-approved">Scheduled</span>`;
+  else               badge = `<span class="badge b-pending">Pending</span>`;
+
+  const schedLabel = sent ? 'Sent ✓' : approved ? 'Scheduled ✓' : 'Schedule';
+  const schedCls   = (sent || approved) ? 'btn btn-success' : 'btn btn-primary';
+  const schedDis   = sent ? 'disabled' : '';
+
+  const el = document.createElement('div');
+  el.className = cardCls;
+  el.innerHTML = `
+    <div class="pc-hdr">
+      <div>
+        <div class="pc-day">${esc(day)}</div>
+        <div class="pc-label">${esc(LABELS[day] || '')}</div>
+      </div>
+      ${badge}
+    </div>
+    <div class="pc-body">${esc(text)}</div>
+    <div class="pc-actions">
+      <button class="${schedCls}" ${schedDis}
+              onclick="schedulePost('${day}')">${schedLabel}</button>
+      <button class="btn btn-ghost"
+              onclick="regeneratePost('${day}')">Regenerate</button>
+    </div>
+  `;
+  return el;
+}
+
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── actions ───────────────────────────────────────────────────────────────────
+function requireToken() {
+  if (hasToken()) return true;
+  openSettings();
+  return false;
+}
+
+async function schedulePost(day) {
+  if (!requireToken()) return;
+  if (S.status === 'approved') { toast('Week is already approved.'); return; }
+  if (!confirm(`Approve all three posts for the week of ${S.weekOf}?\n\nThey'll post Mon, Wed, and Fri at 9 AM.`)) return;
+  await doApprove();
+}
+
+async function postAll() {
+  if (!requireToken()) return;
+  if (S.status === 'approved') { toast('Week is already approved.'); return; }
+  if (!confirm(`Approve all three posts for the week of ${S.weekOf}?\n\nThey'll post Mon, Wed, and Fri at 9 AM.`)) return;
+  await doApprove();
+}
+
+async function doApprove() {
+  const prev = S.status;
+  busy(true);
+  try {
+    S.status      = 'approved';
+    S.approvedAt  = new Date().toISOString();
+    S.approvedVia = 'dashboard';
+    await commitS('chore: approved via dashboard');
+    render();
+    toast('Approved — posts go out Mon / Wed / Fri at 9 AM.', 't-ok');
+  } catch (e) {
+    S.status = prev;
+    delete S.approvedAt; delete S.approvedVia;
+    render();
+    toast('Error: ' + e.message, 't-err');
+  } finally {
+    busy(false);
+  }
+}
+
+async function regeneratePost(day) {
+  if (!requireToken()) return;
+  if (!confirm(`Regenerate the ${day} post with Claude?\n\nRefresh in ~30 seconds to see the new version.`)) return;
+  busy(true);
+  try {
+    await dispatch('regenerate-post.yml', { day });
+    toast(`Regenerating ${day} post — refresh in ~30 s.`, 't-ok');
+  } catch (e) {
+    toast('Error: ' + e.message, 't-err');
+  } finally {
+    busy(false);
+  }
+}
+
+async function regenerateAll() {
+  if (!requireToken()) return;
+  if (!confirm('Regenerate the topic AND all three posts?\n\nThis reruns the full weekly generation. Refresh in ~2 minutes.')) return;
+  busy(true);
+  try {
+    await dispatch('generate-week.yml');
+    toast('Regenerating everything — refresh in ~2 min.', 't-ok');
+  } catch (e) {
+    toast('Error: ' + e.message, 't-err');
+  } finally {
+    busy(false);
+  }
+}
+
+// ── boot ──────────────────────────────────────────────────────────────────────
+load();
+</script>
+</body>
+</html>
