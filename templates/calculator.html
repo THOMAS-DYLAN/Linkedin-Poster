@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><!-- TITLE --></title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f9f9f7;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 24px 20px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    header p {
+      color: #555;
+      font-size: 0.95rem;
+      margin-top: 6px;
+    }
+    main {
+      flex: 1;
+      max-width: 560px;
+      width: 100%;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 28px 24px;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+      margin-top: 18px;
+    }
+    label:first-of-type { margin-top: 0; }
+    input[type="number"], input[type="text"], select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d1d1;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #1a1a1a;
+      background: #fafafa;
+      appearance: none;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #0070f3;
+      background: #fff;
+    }
+    .hint {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 4px;
+    }
+    button {
+      display: block;
+      width: 100%;
+      margin-top: 24px;
+      padding: 13px;
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover { background: #333; }
+    #results {
+      display: none;
+    }
+    #results .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.95rem;
+    }
+    #results .result-row:last-of-type { border-bottom: none; }
+    #results .result-label { color: #555; }
+    #results .result-value { font-weight: 700; font-size: 1.05rem; }
+    #results .result-value.highlight { color: #d63b3b; }
+    .reset-btn {
+      background: transparent;
+      color: #555;
+      border: 1px solid #d1d1d1;
+      margin-top: 12px;
+      font-weight: 500;
+    }
+    .reset-btn:hover { background: #f5f5f5; color: #1a1a1a; }
+    footer {
+      background: #fff;
+      border-top: 1px solid #e5e5e5;
+      padding: 32px 20px;
+      text-align: center;
+    }
+    footer p {
+      color: #555;
+      font-size: 0.95rem;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    footer a {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 11px 24px;
+      background: #1a1a1a;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    footer a:hover { background: #333; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1><!-- TITLE --></h1>
+  <p><!-- SUBTITLE --></p>
+</header>
+
+<main>
+  <div class="card" id="input-card">
+    <!-- INPUT FIELDS GO HERE -->
+    <!-- Example structure:
+    <label for="field1">Field Label</label>
+    <input type="number" id="field1" placeholder="e.g. 1000">
+    <p class="hint">Helper text explaining the field</p>
+    -->
+
+    <button onclick="calculate()">Calculate</button>
+  </div>
+
+  <div class="card" id="results">
+    <!-- RESULT ROWS GO HERE -->
+    <!-- Example structure:
+    <div class="result-row">
+      <span class="result-label">Result Label</span>
+      <span class="result-value highlight" id="result1">—</span>
+    </div>
+    -->
+
+    <button class="reset-btn" onclick="reset()">Start over</button>
+  </div>
+</main>
+
+<footer>
+  <p><!-- CTA_TEXT --></p>
+  <a href="<!-- CONTACT_URL -->"><!-- CTA_BUTTON --></a>
+</footer>
+
+<script>
+  function calculate() {
+    // INPUT READING
+    // const val1 = parseFloat(document.getElementById('field1').value) || 0;
+
+    // CALCULATION LOGIC
+    // const result = val1 * someMultiplier;
+
+    // OUTPUT DISPLAY
+    // document.getElementById('result1').textContent = '$' + result.toLocaleString();
+
+    document.getElementById('input-card').style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+  }
+
+  function reset() {
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('input-card').style.display = 'block';
+  }
+</script>
+
+</body>
+</html>

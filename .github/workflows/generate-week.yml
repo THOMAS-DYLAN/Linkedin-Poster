@@ -1,0 +1,44 @@
+name: Generate Week
+
+# Runs Sunday 8 PM EST.
+# EST = UTC-5, so 8 PM EST = 1 AM UTC Monday.
+# If you're in a different timezone, change the hour below.
+# CST (UTC-6): hour 2 | MST (UTC-7): hour 3 | PST (UTC-8): hour 4
+on:
+  schedule:
+    - cron: '0 1 * * 1'
+  workflow_dispatch:  # lets you trigger it manually from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate topic, page, and posts
+        run: node src/generate-week.js
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_PAGES_TOKEN: ${{ secrets.GH_PAGES_TOKEN }}
+          GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          YOUR_CONTACT_URL: ${{ secrets.YOUR_CONTACT_URL }}
+
+      - name: Commit updated data files
+        run: |
+          git config user.name "linkedin-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/topics-used.json data/pending-week.json
+          git diff --staged --quiet || (git commit -m "chore: week $(date +%Y-%m-%d) generated" && git push)

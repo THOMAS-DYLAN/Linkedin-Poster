@@ -1,0 +1,44 @@
+name: Post to LinkedIn
+
+# Posts the correct draft on Monday, Wednesday, and Friday at 9 AM EST.
+# EST = UTC-5, so 9 AM EST = 2 PM UTC.
+# If you're in a different timezone, change the hour below.
+# CST (UTC-6): hour 15 | MST (UTC-7): hour 16 | PST (UTC-8): hour 17
+on:
+  schedule:
+    - cron: '0 14 * * 1'  # Monday 9 AM EST
+    - cron: '0 14 * * 3'  # Wednesday 9 AM EST
+    - cron: '0 14 * * 5'  # Friday 9 AM EST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Post today's LinkedIn draft
+        run: node src/post-today.js
+        env:
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_AUTHOR_URN: ${{ secrets.LINKEDIN_AUTHOR_URN }}
+
+      - name: Commit sent status
+        run: |
+          git config user.name "linkedin-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/pending-week.json
+          git diff --staged --quiet || (git pull --rebase && git commit -m "chore: posted $(date +%A) post $(date +%Y-%m-%d)" && git push)

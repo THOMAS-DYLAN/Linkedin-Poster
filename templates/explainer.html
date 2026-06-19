@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><!-- TITLE --></title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f9f9f7;
+      color: #1a1a1a;
+    }
+    header {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 60px 20px 48px;
+      text-align: center;
+    }
+    header .label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #aaa;
+      margin-bottom: 14px;
+    }
+    header h1 {
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    header p {
+      color: #bbb;
+      font-size: 1rem;
+      margin-top: 14px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+    .section {
+      margin-top: 48px;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    .section h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 14px;
+    }
+    .section p {
+      font-size: 0.975rem;
+      line-height: 1.75;
+      color: #333;
+    }
+    .section p + p {
+      margin-top: 12px;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid #e5e5e5;
+      margin: 40px 0 0;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .stat-card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #1a1a1a;
+    }
+    .stat-desc {
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    ul.checklist {
+      list-style: none;
+      margin-top: 14px;
+    }
+    ul.checklist li {
+      padding: 8px 0 8px 28px;
+      position: relative;
+      font-size: 0.975rem;
+      color: #333;
+      line-height: 1.5;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    ul.checklist li:last-child { border-bottom: none; }
+    ul.checklist li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #888;
+      font-size: 0.9rem;
+    }
+    footer {
+      background: #fff;
+      border-top: 1px solid #e5e5e5;
+      padding: 48px 20px;
+      text-align: center;
+    }
+    footer p {
+      color: #555;
+      font-size: 0.975rem;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+    footer a {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 13px 28px;
+      background: #1a1a1a;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    footer a:hover { background: #333; }
+    @media (max-width: 480px) {
+      header { padding: 40px 20px 36px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="label"><!-- CATEGORY --></p>
+  <h1><!-- HEADLINE --></h1>
+  <p><!-- SUBHEADLINE --></p>
+</header>
+
+<main>
+
+  <!-- SECTION 1: THE PROBLEM -->
+  <div class="section">
+    <p class="section-label">The Problem</p>
+    <h2><!-- PROBLEM_HEADING --></h2>
+    <p><!-- PROBLEM_BODY_1 --></p>
+    <p><!-- PROBLEM_BODY_2 --></p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- OPTIONAL STATS BLOCK — remove if not needed -->
+  <div class="section">
+    <div class="stat-grid">
+      <!-- STAT CARDS GO HERE
+      <div class="stat-card">
+        <div class="stat-number">XX%</div>
+        <div class="stat-desc">of small businesses...</div>
+      </div>
+      -->
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 2: WHAT THIS MEANS -->
+  <div class="section">
+    <p class="section-label">What This Means</p>
+    <h2><!-- MEANS_HEADING --></h2>
+    <p><!-- MEANS_BODY --></p>
+    <ul class="checklist">
+      <!-- CHECKLIST ITEMS
+      <li>Item one</li>
+      <li>Item two</li>
+      -->
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 3: WHAT TO DO -->
+  <div class="section">
+    <p class="section-label">What To Do</p>
+    <h2><!-- TODO_HEADING --></h2>
+    <p><!-- TODO_BODY --></p>
+  </div>
+
+</main>
+
+<footer>
+  <p><!-- CTA_TEXT --></p>
+  <a href="<!-- CONTACT_URL -->"><!-- CTA_BUTTON --></a>
+</footer>
+
+</body>
+</html>
