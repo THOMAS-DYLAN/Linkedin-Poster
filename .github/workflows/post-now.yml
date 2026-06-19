@@ -1,0 +1,47 @@
+name: Post Now
+
+on:
+  workflow_dispatch:
+    inputs:
+      day:
+        description: 'Which post to send immediately'
+        required: true
+        type: choice
+        options:
+          - monday
+          - wednesday
+          - friday
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Post specified day
+        run: node src/post-today.js
+        env:
+          POST_DAY_OVERRIDE: ${{ inputs.day }}
+          POST_FORCE: '1'
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_AUTHOR_URN: ${{ secrets.LINKEDIN_AUTHOR_URN }}
+
+      - name: Commit sent status
+        run: |
+          git config user.name "linkedin-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/pending-week.json
+          git diff --staged --quiet || (git pull --rebase && git commit -m "chore: posted ${{ inputs.day }} post now $(date +%Y-%m-%d)" && git push)

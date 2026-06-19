@@ -12,7 +12,8 @@
     "auth-linkedin": "node src/linkedin.js --auth",
     "test:email": "node src/email.js --test",
     "test:linkedin": "node src/linkedin.js --test",
-    "regenerate-post": "node src/regenerate-post.js"
+    "regenerate-post": "node src/regenerate-post.js",
+    "regenerate-all-posts": "node src/regenerate-all-posts.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0",
