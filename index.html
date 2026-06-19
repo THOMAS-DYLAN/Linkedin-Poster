@@ -546,15 +546,12 @@ function onEdit(day) {
   } else {
     dirty.delete(day);
     card.classList.remove('pc-dirty');
-    // restore original badge based on weekStatus
-    const status = S.status;
-    const post   = S.posts.find(p => p.day === day);
-    const sent   = post && post.sent;
+    const sent = post && post.sent;
     if (sent) {
       card.classList.add('pc-sent');
       card.querySelector('.pc-hdr .badge').textContent = 'Sent';
       card.querySelector('.pc-hdr .badge').className = 'badge b-sent';
-    } else if (status === 'approved') {
+    } else if (S.status === 'approved') {
       card.classList.add('pc-approved');
       card.querySelector('.pc-hdr .badge').textContent = 'Scheduled';
       card.querySelector('.pc-hdr .badge').className = 'badge b-approved';
@@ -565,6 +562,54 @@ function onEdit(day) {
   }
 
   autoSize(ta);
+}
+
+// ── targeted DOM helpers (avoid full re-render that wipes dirty textareas) ────
+function updateCardState(day) {
+  const card  = document.getElementById('card-' + day);
+  if (!card) return;
+  const isDirty = dirty.has(day);
+  const post    = S.posts.find(p => p.day === day);
+  const sent    = post && post.sent;
+  const badge   = card.querySelector('.pc-hdr .badge');
+
+  card.classList.remove('pc-dirty', 'pc-approved', 'pc-sent');
+
+  if (isDirty) {
+    card.classList.add('pc-dirty');
+    if (badge) { badge.textContent = 'Edited'; badge.className = 'badge b-dirty'; }
+  } else if (sent) {
+    card.classList.add('pc-sent');
+    if (badge) { badge.textContent = 'Sent'; badge.className = 'badge b-sent'; }
+  } else if (S.status === 'approved') {
+    card.classList.add('pc-approved');
+    if (badge) { badge.textContent = 'Scheduled'; badge.className = 'badge b-approved'; }
+  } else {
+    if (badge) { badge.textContent = 'Pending'; badge.className = 'badge b-pending'; }
+  }
+}
+
+function updateFooterBtn() {
+  const btn    = document.getElementById('btn-schedule');
+  const pan    = document.getElementById('btn-post-all-now');
+  const allSent = S.posts.every(p => p.sent);
+  if (allSent) {
+    btn.textContent = 'All Sent ✓'; btn.disabled = true; btn.className = 'btn btn-success';
+  } else if (S.status === 'approved') {
+    btn.textContent = 'Revoke Approval'; btn.disabled = false; btn.className = 'btn btn-warn';
+    btn.onclick = revokeApproval;
+  } else {
+    btn.textContent = 'Schedule All'; btn.disabled = false; btn.className = 'btn btn-primary';
+    btn.onclick = scheduleAll;
+  }
+  if (pan) pan.disabled = allSent;
+
+  const wb = document.getElementById('week-badge');
+  if (S.status === 'approved') {
+    wb.textContent = 'Approved'; wb.className = 'badge b-approved';
+  } else {
+    wb.textContent = 'Pending approval'; wb.className = 'badge b-pending';
+  }
 }
 
 // ── require token ─────────────────────────────────────────────────────────────
@@ -586,7 +631,7 @@ async function savePost(day) {
     post.text = newText;
     await commitS(`chore: edit ${day} post via dashboard`);
     dirty.delete(day);
-    render();
+    updateCardState(day);   // targeted update — preserves other dirty textareas
     toast(`${day} post saved.`, 't-ok');
   } catch (e) {
     toast('Save failed: ' + e.message, 't-err');
@@ -636,11 +681,14 @@ async function scheduleAll() {
   try {
     S.status = 'approved'; S.approvedAt = new Date().toISOString(); S.approvedVia = 'dashboard';
     await commitS('chore: approved via dashboard');
-    render();
+    // targeted update — does not rebuild textareas, preserving any dirty edits
+    ['monday', 'wednesday', 'friday'].forEach(updateCardState);
+    updateFooterBtn();
     toast('Scheduled — posts go out Mon / Wed / Fri at 9 AM.', 't-ok');
   } catch (e) {
     S.status = prev; delete S.approvedAt; delete S.approvedVia;
-    render();
+    ['monday', 'wednesday', 'friday'].forEach(updateCardState);
+    updateFooterBtn();
     toast('Error: ' + e.message, 't-err');
   } finally {
     busy(false);
@@ -654,7 +702,9 @@ async function revokeApproval() {
   try {
     S.status = 'pending'; delete S.approvedAt; delete S.approvedVia;
     await commitS('chore: revoked approval via dashboard');
-    render();
+    // targeted update — does not rebuild textareas, preserving any dirty edits
+    ['monday', 'wednesday', 'friday'].forEach(updateCardState);
+    updateFooterBtn();
     toast('Approval revoked.', 't-inf');
   } catch (e) {
     toast('Error: ' + e.message, 't-err');
