@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const { generateTopic, generatePageHTML, generatePosts } = require('./claude-prompts');
 const { deployPage } = require('./github-deploy');
-const { sendDraftEmail } = require('./email');
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const DATA_DIR = path.join(__dirname, '../data');
@@ -78,7 +77,7 @@ async function main() {
     console.log(posts[1].text);
     console.log('\n=== FRIDAY POST ===');
     console.log(posts[2].text);
-    console.log('\n[DRY RUN] No email sent. No data saved. Done.');
+    console.log('\n[DRY RUN] No data saved. Done.');
     return;
   }
 
@@ -98,12 +97,7 @@ async function main() {
   usedTopics.push({ title: topic.title, slug: topic.slug, weekOf });
   fs.writeFileSync(TOPICS_FILE, JSON.stringify(usedTopics, null, 2));
 
-  // 7. Send approval email
-  process.stdout.write('Sending approval email...');
-  await sendDraftEmail(weekData);
-  console.log(' done.\n');
-
-  console.log(`All done. Check ${process.env.GMAIL_USER} and reply "approved" to schedule the posts.`);
+  console.log('All done. Posts are ready for review on the dashboard.');
 }
 
 main().catch(err => {
