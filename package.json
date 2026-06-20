@@ -6,6 +6,7 @@
   "scripts": {
     "generate": "node src/generate-week.js",
     "dry-run": "node src/generate-week.js --dry-run",
+    "approve": "node src/approve.js",
     "post": "node src/post-today.js",
     "dashboard": "node src/server.js",
     "auth-linkedin": "node src/linkedin.js --auth",

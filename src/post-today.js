@@ -11,7 +11,7 @@ const DAY_MAP = {
   5: 'friday'
 };
 
-const DAY_OVERRIDE = process.env.POST_DAY_OVERRIDE;
+const DAY_OVERRIDE = process.argv[2] || process.env.POST_DAY_OVERRIDE;
 const FORCE        = process.env.POST_FORCE === '1';
 
 function todayDayKey() {
@@ -36,7 +36,7 @@ async function main() {
   const pending = JSON.parse(raw);
 
   if (!FORCE && pending.status !== 'approved') {
-    console.log(`Week of ${pending.weekOf} is not approved yet. Waiting for email reply.`);
+    console.log(`Week of ${pending.weekOf} is not approved yet. Run "npm run approve" first.`);
     return;
   }
 
