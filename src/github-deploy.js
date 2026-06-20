@@ -10,7 +10,7 @@ function parseRepo(repoString) {
 }
 
 async function deployPage(slug, htmlContent) {
-  const { owner, repo } = parseRepo(process.env.GITHUB_REPO);
+  const { owner, repo } = parseRepo(process.env.GITHUB_REPOSITORY || process.env.GITHUB_REPO);
   const filePath = `pages/${slug}/index.html`;
   const encodedContent = Buffer.from(htmlContent).toString('base64');
 

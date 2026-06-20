@@ -31,7 +31,6 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_PAGES_TOKEN: ${{ secrets.GH_PAGES_TOKEN }}
-          GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
           YOUR_CONTACT_URL: ${{ secrets.YOUR_CONTACT_URL }}
 
       - name: Commit updated data files

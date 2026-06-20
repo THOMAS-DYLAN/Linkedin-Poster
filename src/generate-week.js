@@ -26,6 +26,15 @@ function getWeekNumber() {
 }
 
 async function main() {
+  if (!DRY_RUN) {
+    const missing = ['ANTHROPIC_API_KEY', 'GH_PAGES_TOKEN'].filter(k => !process.env[k]);
+    if (missing.length) {
+      console.error(`Missing required GitHub secrets: ${missing.join(', ')}`);
+      console.error('Go to: GitHub repo → Settings → Secrets and variables → Actions → New repository secret');
+      process.exit(1);
+    }
+  }
+
   console.log(DRY_RUN ? '\n-- DRY RUN MODE --\n' : '\nGenerating this week\'s content...\n');
 
   const weekOf = getWeekOf();
