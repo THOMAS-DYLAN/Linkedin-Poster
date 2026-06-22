@@ -15,7 +15,7 @@
     "regenerate-all-posts": "node src/regenerate-all-posts.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.24.0",
+    "@anthropic-ai/sdk": "^0.105.0",
     "@octokit/rest": "^20.0.0",
     "axios": "^1.6.0",
     "dotenv": "^16.3.0",
