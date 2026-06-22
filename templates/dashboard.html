@@ -247,9 +247,9 @@
 
 <script>
   const DAY_LABELS = {
-    monday:    'POST 1 — Introduction · goes out Monday at 9 AM',
-    wednesday: 'POST 2 — Why businesses care · goes out Wednesday at 9 AM',
-    friday:    'POST 3 — Web development tie-in · goes out Friday at 9 AM'
+    monday:    'POST 1 — Monday · introduce the tool or insight',
+    wednesday: 'POST 2 — Wednesday · seller experience, no CTA',
+    friday:    'POST 3 — Friday · own your store, direct CTA'
   };
 
   let pending = null;
@@ -277,7 +277,7 @@
       st.textContent = `Approved${via} — posts will go out automatically Mon / Wed / Fri at 9 AM`;
     } else {
       sb.className = 'status-bar pending';
-      st.textContent = 'Pending approval — review the posts below and click Confirm, or reply "approved" to the email.';
+      st.textContent = 'Pending approval — review the posts below and click Confirm when ready.';
     }
 
     // Topic card

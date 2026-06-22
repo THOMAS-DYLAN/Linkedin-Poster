@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const VOICE_GUIDE = fs.readFileSync(path.join(__dirname, '../data/voice-guide.txt'), 'utf8');
+const VOICE_GUIDE = fs.readFileSync(path.join(__dirname, '../linkedin-voice.md'), 'utf8');
 
 async function generateTopic(weekNumber, usedTopics) {
   const type = weekNumber % 2 === 1 ? 'calculator' : 'explainer';
@@ -15,7 +15,7 @@ async function generateTopic(weekNumber, usedTopics) {
   const message = await client.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 512,
-    system: `You generate content ideas for a solo web developer who builds e-commerce sites for small businesses. Ideas must be directly useful to non-technical small business owners.`,
+    system: `You generate content ideas for Deadwood Digital, a one-person web development studio that builds e-commerce stores for small sellers — people currently selling on Etsy, eBay, Amazon, or TikTok Shop who want their own store. Ideas must be directly useful and compelling to non-technical small sellers. NEVER suggest developer-facing topics (no git, no code tools, no programming concepts). Every idea must connect to one of these content pillars: marketplace fees and platform risk, owning your store vs renting space on a platform, what makes shoppers trust and buy (conversion/checkout), the real cost of not having your own store, or myths about what it takes to sell online independently.`,
     messages: [{
       role: 'user',
       content: `Week ${weekNumber}. Type: ${type}.
@@ -69,7 +69,7 @@ async function generatePosts(topic, pageUrl) {
   const message = await client.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 2048,
-    system: `You write LinkedIn posts for a solo web developer. You must follow these voice rules exactly:\n\n${VOICE_GUIDE}`,
+    system: `You write LinkedIn posts for Deadwood Digital. Read the full voice guide below and follow every rule exactly — the hard rules, the post anatomy, the hashtag sets, the CTA rotation, the checklist.\n\n${VOICE_GUIDE}`,
     messages: [{
       role: 'user',
       content: `Write three LinkedIn posts for this week's content. The page is live at: ${pageUrl}
@@ -77,20 +77,35 @@ async function generatePosts(topic, pageUrl) {
 Topic: ${topic.title}
 Description: ${topic.description}
 
-POST 1 — MONDAY (Introduction)
-Introduce what this tool/page is and what it does. Hook in the first line — make someone stop scrolling. Describe the tool plainly. Link to the page. No sales pitch. 100-150 words.
+INSTRUCTIONS — follow these precisely:
 
-POST 2 — WEDNESDAY (Value for businesses)
-Why would a small business owner care about this? Make it feel real and relevant to someone running an actual shop. No mention of the tool yet — lead with the problem or insight, then reference the tool naturally as a resource. 100-150 words.
+1. CONTENT PILLARS (section 5): Choose the best-fit pillar for each post. Use a different pillar for each of the three posts — don't repeat.
 
-POST 3 — FRIDAY (Web development tie-in)
-Connect this topic back to why having a good website matters for a small business. This is where you draw the line between the tool/insight and the real business impact of their online presence. Soft mention that this is what you help businesses with. 100-150 words.
+2. POST TYPE (section 6): Choose the best-fit post type (Insight, Problem, Story, Myth-bust, List, Hook-only) for each post. Vary the types across the three posts.
+
+3. CTA ROTATION (section 7) — this is mandatory:
+   - Monday: soft CTA — e.g. "Comment if this sounds familiar."
+   - Wednesday: no CTA — let the value stand alone, end on the point.
+   - Friday: direct but warm CTA — e.g. "If you're still renting space on someone else's platform, let's talk. DM me."
+
+4. HASHTAGS (section 9): End each post with 5–8 tiered hashtags after a blank line. Use a different set (A, B, C, or D) for each post — don't reuse the same set.
+
+5. HOOK (section 7 + section 8): Line 1 must stop the scroll. Use a bold specific claim, a stat, or an unexpected observation. Never open with "I". Never open with a one-word question. Use the hook bank in section 8 as inspiration — don't copy verbatim.
+
+6. FORMATTING (section 10): Single or two-sentence paragraphs. Blank line between every thought. No em-dashes in run-on sentences.
+
+7. Run the checklist from section 13 mentally before outputting each post.
+
+Connect each post naturally to the tool/topic:
+- Monday: introduce the tool or insight — what it is, what it shows, why it matters. Link to ${pageUrl}.
+- Wednesday: ground it in the seller's real experience — fees, lost customers, no control. Reference the tool as a resource.
+- Friday: draw the line to owning your store. Make the reader feel the difference between renting space on a platform and having something real.
 
 Respond ONLY with valid JSON, no markdown, no explanation:
 {
-  "monday": "full post text",
-  "wednesday": "full post text",
-  "friday": "full post text"
+  "monday": "full post text including hashtags",
+  "wednesday": "full post text including hashtags",
+  "friday": "full post text including hashtags"
 }`
     }]
   });
